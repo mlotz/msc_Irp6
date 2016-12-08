@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import os
+from os import remove, close
+from shutil import copyfile, move, rmtree
+import fileinput
+from tempfile import mkstemp
+
+
+# PARAMS
+pkg_name = "msc_mlotz_pkg"
+path_to_logger_config = "/home/mlotz/orocosPoligon/repoUniConf.cpf"
+robot_name = "ot" # "p" / "ot"
+hardware ="" # "no" / ""
+
+
+
+#replace line method
+def replace(file_path, pattern, subst):
+    #Create temp file
+    fh, abs_path = mkstemp()
+    with open(abs_path,'w') as new_file:
+        with open(file_path) as old_file:
+            for line in old_file:
+                new_file.write(line.replace(pattern, subst))
+    os.close(fh)
+    #Remove original file
+    os.remove(file_path)
+    #Move new file
+    move(abs_path, file_path)
+#--------------
+
+
+#wipedirs
+if os.path.exists('./config'):
+	rmtree('./config');
+if os.path.exists('./launch'):
+	rmtree('./launch');
+
+#mkdirs
+if not os.path.exists('./config'):
+    	os.makedirs('./config');
+if not os.path.exists('./launch'):
+    	os.makedirs('./launch');
+#OT
+
+#modify OPS
+copyfile('/opt/ws_irp6/share/irp6_bringup/config/irp6-'+robot_name+'-inside.ops', './config/repo_irp6-'+robot_name+'-inside.ops')
+
+processing_foo1s = False
+
+for line in fileinput.input('./config/repo_irp6-'+robot_name+'-inside.ops', inplace=1):
+  if line.startswith('//          START COMPONENTS'):
+    processing_foo1s = True
+  else:
+    if processing_foo1s:
+      	print '//INJECTION - Last minute structure modifications:\n'
+	print '//Uni - Reporting component'
+	print 'loadComponent("repoUni","OCL::FileReporting")'
+	print 'loadService("repoUni","marshalling")'
+	print 'addPeer("repoUni","Irp6'+robot_name+'mForwardKinematic")'
+	print 'addPeer("repoUni","Irp6'+robot_name+'mForceTransformation")'
+	print 'repoUni.setPeriod(0.002)'
+	print 'repoUni.reportPort("Irp6'+robot_name+'mForwardKinematic","EndEffectorOutputPose")'
+	print 'repoUni.reportPort("Irp6'+robot_name+'mForceTransformation","OutputEndEffectorWrench")'
+	print 'repoUni.marshalling.loadProperties("'+path_to_logger_config+'")'
+	print 'addPeer("Irp6'+robot_name+'Scheme", "repoUni");'
+	print 'Irp6'+robot_name+'Scheme.addBlock("repoUni");'
+	print '\n//END_OF_INJECTION'
+
+    processing_foo1s = False
+  print line,
+
+#modify AUX files
+#1
+copyfile('/opt/ws_irp6/share/irp6_bringup/config/irp6-'+robot_name+'-'+hardware+'hardware-inside.ops', './config/repo_irp6-'+robot_name+'-'+hardware+'hardware-inside.ops')
+replace ('./config/repo_irp6-'+robot_name+'-'+hardware+'hardware-inside.ops', 'runScript( ros.find("irp6_bringup") + "/config/irp6-'+robot_name+'-inside.ops")' , 'runScript( ros.find("'+pkg_name +'") + "/src/config/repo_irp6-'+robot_name+'-inside.ops")')
+#2
+copyfile('/opt/ws_irp6/share/irp6_bringup/config/irp6-'+robot_name+'-'+hardware+'hardware.ops', './config/repo_irp6-'+robot_name+'-'+hardware+'hardware.ops')
+replace ('./config/repo_irp6-'+robot_name+'-'+hardware+'hardware.ops', 'runScript( ros.find("irp6_bringup") + "/config/irp6-'+robot_name+'-'+hardware+'hardware-inside.ops")' , 'runScript( ros.find("'+pkg_name +'") + "/src/config/repo_irp6-'+robot_name+'-'+hardware+'hardware-inside.ops")')
+
+
+#ros.import("irp6_force_sensor")
+for line in fileinput.input('./config/repo_irp6-'+robot_name+'-'+hardware+'hardware.ops', inplace=1):
+  if line.startswith('ros.import("irp6_force_sensor")'):
+    processing_foo1s = True
+  else:
+    if processing_foo1s:
+      	print '//INJECTION - Last minute componet imports:\n'
+	print '//custom components:'
+	print 'ros.import("'+pkg_name+'")'
+	print '\n//END_OF_INJECTION'
+
+    processing_foo1s = False
+  print line,
+
+#modify launch
+copyfile('/opt/ws_irp6/share/irp6_bringup/launch/irp6-'+robot_name+'-'+hardware+'hardware.launch', './launch/repo_irp6-'+robot_name+'-'+hardware+'hardware.launch')
+replace ('./launch/repo_irp6-'+robot_name+'-'+hardware+'hardware.launch', '<arg name="DEPLOYER_ARGS" value="-s $(find irp6_bringup)/config/irp6-'+robot_name+'-'+hardware+'hardware.ops"/>' , '<arg name="DEPLOYER_ARGS" value="-s $(find '+pkg_name+')/src/config/repo_irp6-'+robot_name+'-'+hardware+'hardware.ops"/>')
+
+
