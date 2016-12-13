@@ -9,7 +9,7 @@ from tempfile import mkstemp
 
 # PARAMS
 pkg_name = "msc_mlotz_pkg"
-path_to_logger_config = "/home/mlotz/orocosPoligon/repoUniConf.cpf"
+path_to_logger_config = "/home/mlotz/msc_ws_irp6/src/msc_mlotz_pkg/src/compConfigs/repoUniConf.cpf"
 robot_name = "ot" # "p" / "ot"
 hardware ="" # "no" / ""
 
