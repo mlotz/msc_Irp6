@@ -36,6 +36,9 @@ zF = str2double(A.textdata(2:end,19));
 % ylabel('Y');
 % plot(t,Y);
 
+%asd
+
+
 f4 = figure(4);
 hold on;
 title('optForce2 - xFN');
