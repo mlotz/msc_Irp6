@@ -59,10 +59,10 @@ for line in fileinput.input('./config/repo_irp6-'+robot_name+'-inside.ops', inpl
 	print 'loadComponent("repoUni","OCL::FileReporting")'
 	print 'loadService("repoUni","marshalling")'
 	print 'addPeer("repoUni","Irp6'+robot_name+'mForwardKinematic")'
-	print 'addPeer("repoUni","Irp6'+robot_name+'mForceTransformation")'
+	#print 'addPeer("repoUni","Irp6'+robot_name+'mForceTransformation")'
 	print 'repoUni.setPeriod(0.002)'
 	print 'repoUni.reportPort("Irp6'+robot_name+'mForwardKinematic","EndEffectorOutputPose")'
-	print 'repoUni.reportPort("Irp6'+robot_name+'mForceTransformation","OutputEndEffectorWrench")'
+	#print 'repoUni.reportPort("Irp6'+robot_name+'mForceTransformation","OutputEndEffectorWrench")'
 	print 'repoUni.marshalling.loadProperties("'+path_to_logger_config+'")'
 	print 'addPeer("Irp6'+robot_name+'Scheme", "repoUni");'
 	print 'Irp6'+robot_name+'Scheme.addBlock("repoUni");'
@@ -70,6 +70,10 @@ for line in fileinput.input('./config/repo_irp6-'+robot_name+'-inside.ops', inpl
 	print 'addPeer("repoUni","HandForce2")'
 	print 'repoUni.reportPort("HandForce2","force0_out")'
 	print 'repoUni.reportPort("HandForce2","force0_scaled_out")'
+
+	print 'addPeer("repoUni","HandForce1")'
+	print 'repoUni.reportPort("HandForce1","force0_out")'
+	print 'repoUni.reportPort("HandForce1","force0_scaled_out")'	
 
 	print '\n//END_OF_INJECTION'
 
